@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga.Inspector</PackageId>
+    <Description>Built-in observability for EventFlux.Saga: records every saga transition in a timeline and serves it as JSON and a minimal HTML page through ASP.NET Core endpoints.</Description>
+    <PackageTags>$(PackageTags);observability;timeline;audit</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventFlux.Saga\EventFlux.Saga.csproj" />
+  </ItemGroup>
+
+</Project>

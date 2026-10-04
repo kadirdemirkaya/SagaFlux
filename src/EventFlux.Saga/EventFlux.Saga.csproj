@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga</PackageId>
+    <Description>Lightweight, free saga/process-manager pattern for EventFlux: in-process-first execution, optional distributed transports, first-class compensating actions and isolated unit testing.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EventFlux" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EventFlux.Saga.Testing" />
+    <InternalsVisibleTo Include="EventFlux.Saga.Test" />
+  </ItemGroup>
+
+</Project>

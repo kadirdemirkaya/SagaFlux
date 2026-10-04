@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga.Inspector.EfCore</PackageId>
+    <Description>Durable Entity Framework Core timeline store for the EventFlux.Saga inspector, built on EfCore.RepositoryPack: saga transition history survives restarts and is shared by every node.</Description>
+    <PackageTags>$(PackageTags);inspector;observability;efcore;entity-framework</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventFlux.Saga.Inspector\EventFlux.Saga.Inspector.csproj" />
+    <ProjectReference Include="..\EventFlux.Saga.EfCore\EventFlux.Saga.EfCore.csproj" />
+  </ItemGroup>
+
+</Project>

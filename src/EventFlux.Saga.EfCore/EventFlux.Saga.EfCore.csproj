@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga.EfCore</PackageId>
+    <Description>Entity Framework Core persistence for EventFlux.Saga, built on EfCore.RepositoryPack: durable saga instances with optimistic concurrency.</Description>
+    <PackageTags>$(PackageTags);efcore;entity-framework;persistence</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EfCore.RepositoryPack" Version="1.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventFlux.Saga\EventFlux.Saga.csproj" />
+  </ItemGroup>
+
+</Project>

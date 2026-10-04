@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga.Testing</PackageId>
+    <Description>Given/When/Then test harness for EventFlux.Saga: unit-test saga state machines without a database, broker or DI container. Test-framework agnostic.</Description>
+    <PackageTags>$(PackageTags);testing;given-when-then</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventFlux.Saga\EventFlux.Saga.csproj" />
+  </ItemGroup>
+
+</Project>

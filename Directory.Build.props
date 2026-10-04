@@ -1,0 +1,39 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>kadirkdr</Authors>
+    <Copyright>Copyright (c) 2026 Kadir Demirkaya</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>saga;state-machine;process-manager;cqrs;eventflux;dotnet;event-driven;compensation</PackageTags>
+    <RepositoryUrl>https://github.com/kadirdemirkaya/SagaFlux</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/kadirdemirkaya/SagaFlux</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('/src/')) Or $(MSBuildProjectDirectory.Contains('\src\'))">
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Source Link (built into the .NET 8 SDK) and a .snupkg symbol package next to each .nupkg -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('/test/')) Or $(MSBuildProjectDirectory.Contains('\test\'))">
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>EventFlux.Saga.RedisFlow</PackageId>
+    <Description>Redis Streams transport adapter for EventFlux.Saga on top of EventFlux.RedisFlow: sagas publish and receive their events through Redis without changing the saga definition.</Description>
+    <PackageTags>$(PackageTags);redis;redis-streams;distributed</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EventFlux.RedisFlow" Version="1.1.0" />
+    <PackageReference Include="DistributedLock.Redis" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EventFlux.Saga.RedisFlow.Test" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventFlux.Saga\EventFlux.Saga.csproj" />
+  </ItemGroup>
+
+</Project>
