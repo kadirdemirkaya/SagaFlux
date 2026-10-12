@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using EventFlux.Saga.Repositories;
 using EventFlux.Saga.Test.Fixtures;
 
@@ -54,5 +56,97 @@ public class InMemorySagaRepositoryTests
     public async Task Find_unknown_returns_null()
     {
         Assert.Null(await _repository.FindAsync(Guid.NewGuid(), default));
+    }
+
+    [Fact]
+    public async Task New_save_serialization_failure_preserves_version_and_allows_retry()
+    {
+        var repository = new InMemorySagaRepository<SerializationFailureState>();
+        var error = new JsonException("State serialization failed.");
+        var state = new SerializationFailureState
+        {
+            CorrelationId = Guid.NewGuid(),
+            CurrentState = "A",
+            Value = "new",
+            SerializationError = error
+        };
+
+        var thrown = await Assert.ThrowsAsync<JsonException>(() => repository.SaveAsync(state, default));
+
+        Assert.Same(error, thrown);
+        Assert.Equal(0, state.Version);
+        Assert.Equal(0, repository.Count);
+        Assert.Null(await repository.FindAsync(state.CorrelationId, default));
+
+        state.SerializationError = null;
+        await repository.SaveAsync(state, default);
+
+        Assert.Equal(1, state.Version);
+        Assert.Equal(1, repository.Count);
+        var loaded = await repository.FindAsync(state.CorrelationId, default);
+        Assert.NotNull(loaded);
+        Assert.NotSame(state, loaded);
+        Assert.Equal(1, loaded.Version);
+        Assert.Equal("A", loaded.CurrentState);
+        Assert.Equal("new", loaded.Value);
+    }
+
+    [Fact]
+    public async Task Update_serialization_failure_preserves_stored_state_and_allows_retry()
+    {
+        var repository = new InMemorySagaRepository<SerializationFailureState>();
+        var state = new SerializationFailureState
+        {
+            CorrelationId = Guid.NewGuid(),
+            CurrentState = "A",
+            Value = "original"
+        };
+        await repository.SaveAsync(state, default);
+
+        var error = new JsonException("State serialization failed.");
+        state.CurrentState = "B";
+        state.Value = "updated";
+        state.SerializationError = error;
+
+        var thrown = await Assert.ThrowsAsync<JsonException>(() => repository.SaveAsync(state, default));
+
+        Assert.Same(error, thrown);
+        Assert.Equal(1, state.Version);
+        Assert.Equal(1, repository.Count);
+        var previous = await repository.FindAsync(state.CorrelationId, default);
+        Assert.NotNull(previous);
+        Assert.Equal(1, previous.Version);
+        Assert.Equal("A", previous.CurrentState);
+        Assert.Equal("original", previous.Value);
+
+        state.SerializationError = null;
+        await repository.SaveAsync(state, default);
+
+        Assert.Equal(2, state.Version);
+        Assert.Equal(1, repository.Count);
+        var loaded = await repository.FindAsync(state.CorrelationId, default);
+        Assert.NotNull(loaded);
+        Assert.NotSame(state, loaded);
+        Assert.Equal(2, loaded.Version);
+        Assert.Equal("B", loaded.CurrentState);
+        Assert.Equal("updated", loaded.Value);
+    }
+
+    public sealed class SerializationFailureState : ISagaState
+    {
+        private string _value = "";
+
+        public Guid CorrelationId { get; set; }
+        public string CurrentState { get; set; } = "";
+        public int Version { get; set; }
+
+        [JsonIgnore]
+        public JsonException? SerializationError { get; set; }
+
+        public string Value
+        {
+            get => SerializationError is { } error ? throw error : _value;
+            set => _value = value;
+        }
     }
 }

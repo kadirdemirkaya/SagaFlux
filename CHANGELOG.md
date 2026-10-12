@@ -8,6 +8,8 @@ repository owner.
 First release candidate of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
 
 ### EventFlux.Saga
+- Fix `InMemorySagaRepository<TState>.SaveAsync` to preserve the caller's `Version` and stored data when JSON
+  serialization fails, propagate the original exception, and allow retrying the same object after fixing serialization.
 - State machine DSL: `During` / `When` / `Then` / `ThenAsync` / `Publish` / `TransitionTo` / `Finalize`, with
   `SagaState` values instead of string literals.
 - Correlation through `ICorrelatedEvent` or `CorrelateBy<TEvent>(...)`, optimistic concurrency with bounded

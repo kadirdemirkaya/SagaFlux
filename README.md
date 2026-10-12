@@ -283,6 +283,13 @@ During(OrderStatesSet.Initial,
   - Removing a listed state produces warning **SAGA001**, because stored instances may still be in it.
   - A state that is not listed yet produces **SAGA002** (info).
 
+## In-memory persistence
+
+`InMemorySagaRepository<TState>` stores isolated JSON copies in the current process; state is lost on shutdown.
+If JSON serialization fails during `SaveAsync`, the original exception propagates, the caller's `Version`
+stays at its pre-save value, and any previously stored data and version remain unchanged. After fixing the
+serialization problem, saving the same object again increments its version once on success.
+
 ## Persistence (EF Core)
 
 ```bash

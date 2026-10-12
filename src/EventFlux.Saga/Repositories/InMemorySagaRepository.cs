@@ -37,7 +37,16 @@ public sealed class InMemorySagaRepository<TState> : ISagaRepository<TState> whe
 
         var expected = state.Version;
         state.Version = expected + 1;
-        var json = JsonSerializer.Serialize(state);
+        string json;
+        try
+        {
+            json = JsonSerializer.Serialize(state);
+        }
+        catch
+        {
+            state.Version = expected;
+            throw;
+        }
 
         bool saved;
         if (expected == 0)
