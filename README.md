@@ -286,6 +286,7 @@ During(OrderStatesSet.Initial,
 ## In-memory persistence
 
 `InMemorySagaRepository<TState>` stores isolated JSON copies in the current process; state is lost on shutdown.
+TState must support serialization and deserialization with System.Text.Json.
 If JSON serialization fails during `SaveAsync`, the original exception propagates, the caller's `Version`
 stays at its pre-save value, and any previously stored data and version remain unchanged. After fixing the
 serialization problem, saving the same object again increments its version once on success.
