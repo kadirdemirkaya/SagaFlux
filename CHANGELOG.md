@@ -8,6 +8,8 @@ repository owner.
 First release candidate of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
 
 ### EventFlux.Saga
+- Fix `InMemorySagaTimeoutStore` to reject pre-cancelled calls to schedule, cancel, cancel-all, get-due and
+  complete with `OperationCanceledException`, preserving pending timeouts and count; keep schedule's null validation first.
 - Fix `InMemorySagaRepository<TState>.SaveAsync` to preserve the caller's `Version` and stored data when JSON
   serialization fails, propagate the original exception, and allow retrying the same object after fixing serialization.
 - State machine DSL: `During` / `When` / `Then` / `ThenAsync` / `Publish` / `TransitionTo` / `Finalize`, with
