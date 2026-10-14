@@ -20,6 +20,7 @@ public sealed class InMemorySagaTimeoutStore : ISagaTimeoutStore
     public Task ScheduleAsync(SagaTimeout timeout, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(timeout);
+        ct.ThrowIfCancellationRequested();
         lock (_gate) _timeouts[(timeout.CorrelationId, timeout.Key)] = timeout;
         return Task.CompletedTask;
     }
@@ -27,6 +28,7 @@ public sealed class InMemorySagaTimeoutStore : ISagaTimeoutStore
     /// <inheritdoc />
     public Task CancelAsync(Guid correlationId, string key, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         lock (_gate) _timeouts.Remove((correlationId, key));
         return Task.CompletedTask;
     }
@@ -34,6 +36,7 @@ public sealed class InMemorySagaTimeoutStore : ISagaTimeoutStore
     /// <inheritdoc />
     public Task CancelAllAsync(Guid correlationId, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         lock (_gate)
         {
             foreach (var key in _timeouts.Keys.Where(k => k.CorrelationId == correlationId).ToList())
@@ -45,6 +48,7 @@ public sealed class InMemorySagaTimeoutStore : ISagaTimeoutStore
     /// <inheritdoc />
     public Task<IReadOnlyList<SagaTimeout>> GetDueAsync(DateTimeOffset now, int maxCount, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         lock (_gate)
         {
             IReadOnlyList<SagaTimeout> due = _timeouts.Values
@@ -59,6 +63,7 @@ public sealed class InMemorySagaTimeoutStore : ISagaTimeoutStore
     /// <inheritdoc />
     public Task CompleteAsync(Guid timeoutId, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         lock (_gate)
         {
             var match = _timeouts.FirstOrDefault(p => p.Value.Id == timeoutId);

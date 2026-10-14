@@ -260,6 +260,11 @@ During(AwaitingPayment,
 - Without a host, call `ISagaTimeoutDispatcher.DispatchDueAsync()` yourself.
 - Delivery is at-least-once, and a failed delivery is retried after `TimeoutRetryDelay`.
 - Time comes from `TimeProvider`, so tests can drive it.
+- With valid arguments, `InMemorySagaTimeoutStore` rejects calls to `ScheduleAsync`, `CancelAsync`,
+  `CancelAllAsync`, `GetDueAsync` and `CompleteAsync` whose token is already cancelled before the call,
+  throwing `OperationCanceledException` with that token and leaving pending timeouts and `Count` unchanged.
+  `ScheduleAsync` checks for a null timeout first. Cancellation during an operation or while waiting for
+  the store's lock has no additional guarantee.
 
 ## Generated states
 
