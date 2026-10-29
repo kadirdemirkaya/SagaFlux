@@ -37,14 +37,39 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
             .Select(static (s, _) => s!)
             .Collect();
 
-        context.RegisterSourceOutput(enums.Combine(snapshots), static (spc, pair) =>
+        var collisions = enums.Collect().Select(static (models, _) => models
+            .Where(m => m.IsAccessible && !m.HasGenericContainer && !m.HasAliases
+                && !m.Members.Intersect(ReservedNames, StringComparer.Ordinal).Any())
+            .GroupBy(m => (m.Namespace, m.EnumName))
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray());
+
+        context.RegisterSourceOutput(enums.Combine(snapshots).Combine(collisions), static (spc, pair) =>
         {
-            var (model, all) = pair;
+            var ((model, all), conflictingNames) = pair;
+            if (!model.IsAccessible || model.HasGenericContainer)
+            {
+                var descriptor = !model.IsAccessible ? SagaDiagnostics.InaccessibleEnum : SagaDiagnostics.GenericContainer;
+                spc.ReportDiagnostic(Diagnostic.Create(descriptor, model.ToLocation(), model.EnumName));
+                return;
+            }
+            if (model.HasAliases)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(SagaDiagnostics.AliasedValues, model.ToLocation(), model.EnumName));
+                return;
+            }
             var reserved = model.Members.Intersect(ReservedNames, StringComparer.Ordinal).ToArray();
             if (reserved.Length > 0)
             {
                 foreach (var name in reserved)
                     spc.ReportDiagnostic(Diagnostic.Create(SagaDiagnostics.ReservedName, model.ToLocation(), name, model.EnumName));
+                return;
+            }
+
+            if (conflictingNames.Contains((model.Namespace, model.EnumName)))
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(SagaDiagnostics.GeneratedSetCollision, model.ToLocation(), model.EnumFullName, model.EnumName + "Set"));
                 return;
             }
 
@@ -63,13 +88,23 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
         var fields = symbol.GetMembers().OfType<IFieldSymbol>().Where(f => f.HasConstantValue).ToArray();
         var location = ctx.TargetNode.GetLocation();
         var lineSpan = location.GetLineSpan();
+        var isAccessible = true;
+        var hasGenericContainer = false;
+        for (var type = symbol; type is not null; type = type.ContainingType)
+        {
+            isAccessible &= type.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal;
+            hasGenericContainer |= type.Arity > 0;
+        }
         return new SagaStateSetModel(
             symbol.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingNamespace.ToDisplayString(),
             symbol.Name,
             symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             IsEffectivelyPublic(symbol),
+            fields.Select(f => f.ConstantValue).Distinct().Count() != fields.Length,
+            isAccessible,
+            hasGenericContainer,
             fields.Select(f => f.Name).ToArray(),
-            fields.Select(f => Convert.ToInt64(f.ConstantValue)).ToArray(),
+            fields.Select(f => Convert.ToDecimal(f.ConstantValue)).ToArray(),
             lineSpan.Path,
             location.SourceSpan,
             lineSpan.Span);
@@ -156,7 +191,7 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static string Definition(string name, long value, int index) => name switch
+    private static string Definition(string name, decimal value, int index) => name switch
     {
         "Initial" => States + ".Initial",
         "Final" => States + ".Final",

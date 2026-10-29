@@ -283,6 +283,16 @@ During(OrderStatesSet.Initial,
 - The compiler generates `OrderStatesSet` with one `SagaState` per member, plus `All`, `From(enum)` and
   `TryParse(name)`. The generated code uses no reflection.
 - `Initial` and `Final` map to the built-in states.
+- Top-level public/internal enums (including the global namespace) and accessible nested enums in
+  non-generic types keep the namespace-level `{EnumName}Set` name. A nested enum and every containing
+  type must be accessible from that namespace (`public`, `internal` or `protected internal`).
+- Invalid inputs produce an error and no set for the affected enum, rather than invalid generated code:
+  **SAGA004** for aliased numeric values, **SAGA005** for an inaccessible enum or containing type,
+  **SAGA006** for a generic containing type, and **SAGA007** for multiple eligible enums that would
+  generate the same set name in one namespace (reported on each conflicting enum). Use distinct numeric
+  values and enum names, or move the enum to an accessible, non-generic type or another namespace.
+- Values outside the `int` range, including large `ulong` values, use the member's zero-based declaration
+  index as the ordinal; `From(enum)` still matches the declared numeric value.
 - Commit an `OrderStates.sagastates` file listing the deployed states (one per line) and add it as
   `<AdditionalFiles Include="OrderStates.sagastates" />`.
   - Removing a listed state produces warning **SAGA001**, because stored instances may still be in it.
@@ -321,6 +331,8 @@ services.AddSagaFlux(typeof(Program).Assembly)
 - A compensation stack is stored as a JSON text column.
 - `UseEfCoreTimeouts` keeps pending timeouts across restarts.
   - The due time is stored as UTC ticks.
+  - Rows with unresolvable event types are logged and retained, without blocking later valid due timeouts.
+    `TimeoutBatchSize` limits valid timeouts per poll, in due-time order; future timeouts are not delivered.
   - The event is stored as JSON, with its type name recorded without a version.
   - If you rename or move a timeout event type while timeouts are pending, keep the old name resolving with
     `[SagaEventFormerName("Old.Namespace.OldName, Old.Assembly")]` on the new type.
@@ -350,6 +362,8 @@ services.AddSagaFlux(typeof(Program).Assembly)
 - **Recovery:** a send that fails is not an error any more. A hosted service sends the rows left behind:
   - It polls every `OutboxPollingInterval` (default 5 s).
   - It only picks rows older than `OutboxDispatchDelay` (default 30 s).
+  - Rows with unresolvable event types are logged and retained, without blocking later valid messages.
+    `OutboxBatchSize` limits the valid messages returned per poll, in staging-time order.
   - Delivery is at least once.
 - **Scope:** use it for sagas stored with `UseEfCore` on the same `DbContext`. The outbox commits with that
   repository.

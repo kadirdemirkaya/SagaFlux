@@ -46,6 +46,10 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - `Answer<TRequest, TResponse>(...)` answers `Ask` requests without handlers; `HaveAsked<T>()` / `NotHaveAsked<T>()`.
 
 ### EventFlux.Saga.EfCore
+- Fix durable timeout reads to continue past unresolvable event types while retaining those rows;
+  preserve the valid-timeout batch limit, due-time order and exclusion of future timeouts.
+- Fix outbox recovery to read past rows with unresolvable event types without changing or deleting them;
+  preserve the valid-message batch limit, staging-time order and dispatch-delay filter.
 - Saga persistence and a durable timeout store on EfCore.RepositoryPack 1.3.0, registered with the package's own
   scoped `AddEfCoreRepository`.
 - `UseEfCoreOutbox<TDbContext>()` / `ConfigureSagaOutbox()`: outbox rows commit in the same `SaveChanges` as the
@@ -61,6 +65,10 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - `UseRedisDistributedLock()` on DistributedLock.Redis (Medallion.Threading).
 
 ### EventFlux.Saga.Generators
+- Report SAGA004 for aliased numeric values, SAGA005 for inaccessible enums/containing types,
+  SAGA006 for generic containing types and SAGA007 for colliding namespace-level set names; skip
+  affected sets instead of emitting compiler errors or crashing. Preserve accessible nested sets.
+- Handle the full `ulong` range without overflowing; values outside `int` retain declaration-index ordinals.
 - `[SagaStateSet]` enum to reflection-free state definitions; SAGA001 (removed deployed state), SAGA002 (new
   state), SAGA003 (name clash).
 

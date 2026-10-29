@@ -5,13 +5,17 @@ namespace EventFlux.Saga.Generators;
 
 internal sealed class SagaStateSetModel : IEquatable<SagaStateSetModel>
 {
-    public SagaStateSetModel(string? ns, string enumName, string enumFullName, bool isPublic, string[] members, long[] values,
+    public SagaStateSetModel(string? ns, string enumName, string enumFullName, bool isPublic, bool hasAliases,
+        bool isAccessible, bool hasGenericContainer, string[] members, decimal[] values,
         string filePath, TextSpan span, LinePositionSpan lineSpan)
     {
         Namespace = ns;
         EnumName = enumName;
         EnumFullName = enumFullName;
         IsPublic = isPublic;
+        HasAliases = hasAliases;
+        IsAccessible = isAccessible;
+        HasGenericContainer = hasGenericContainer;
         Members = members;
         Values = values;
         FilePath = filePath;
@@ -27,9 +31,15 @@ internal sealed class SagaStateSetModel : IEquatable<SagaStateSetModel>
 
     public bool IsPublic { get; }
 
+    public bool HasAliases { get; }
+
+    public bool IsAccessible { get; }
+
+    public bool HasGenericContainer { get; }
+
     public string[] Members { get; }
 
-    public long[] Values { get; }
+    public decimal[] Values { get; }
 
     public string FilePath { get; }
 
@@ -44,6 +54,9 @@ internal sealed class SagaStateSetModel : IEquatable<SagaStateSetModel>
            && Namespace == other.Namespace
            && EnumFullName == other.EnumFullName
            && IsPublic == other.IsPublic
+           && HasAliases == other.HasAliases
+           && IsAccessible == other.IsAccessible
+           && HasGenericContainer == other.HasGenericContainer
            && Members.SequenceEqual(other.Members)
            && Values.SequenceEqual(other.Values)
            && FilePath == other.FilePath

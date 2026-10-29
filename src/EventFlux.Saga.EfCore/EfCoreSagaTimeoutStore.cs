@@ -55,27 +55,37 @@ public sealed class EfCoreSagaTimeoutStore(
     public async Task<IReadOnlyList<SagaTimeout>> GetDueAsync(DateTimeOffset now, int maxCount, CancellationToken ct)
     {
         var nowTicks = now.UtcTicks;
-        var records = await reader.GetQueryable()
+        var query = reader.GetQueryable()
             .AsNoTracking()
-            .Where(r => r.DueAtUtcTicks <= nowTicks)
-            .OrderBy(r => r.DueAtUtcTicks)
-            .Take(maxCount)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        var due = new List<SagaTimeout>(records.Count);
-        foreach (var record in records)
+            .Where(r => r.DueAtUtcTicks <= nowTicks);
+        var recordCount = await query.CountAsync(ct).ConfigureAwait(false);
+        var due = new List<SagaTimeout>();
+        var offset = 0;
+        while (offset < recordCount && due.Count < maxCount)
         {
-            var type = SagaEventTypeNames.Resolve(record.EventType);
-            if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
-            {
-                logger.LogWarning("Saga timeout {Id} for {CorrelationId} has an unresolvable event type '{EventType}' and is skipped.",
-                    record.Id, record.CorrelationId, record.EventType);
-                continue;
-            }
+            var records = await query
+                .OrderBy(r => r.DueAtUtcTicks)
+                .ThenBy(r => r.Id)
+                .Skip(offset)
+                .Take(Math.Min(maxCount - due.Count, recordCount - offset))
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            if (records.Count == 0) break;
+            offset += records.Count;
 
-            due.Add(new SagaTimeout(record.Id, record.CorrelationId, record.Key,
-                new DateTimeOffset(record.DueAtUtcTicks, TimeSpan.Zero), @event));
+            foreach (var record in records)
+            {
+                var type = SagaEventTypeNames.Resolve(record.EventType);
+                if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
+                {
+                    logger.LogWarning("Saga timeout {Id} for {CorrelationId} has an unresolvable event type '{EventType}' and is skipped.",
+                        record.Id, record.CorrelationId, record.EventType);
+                    continue;
+                }
+
+                due.Add(new SagaTimeout(record.Id, record.CorrelationId, record.Key,
+                    new DateTimeOffset(record.DueAtUtcTicks, TimeSpan.Zero), @event));
+            }
         }
 
         return due;

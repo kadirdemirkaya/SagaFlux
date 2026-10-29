@@ -62,7 +62,6 @@ public sealed class EfCoreSagaOutbox(
         ArgumentNullException.ThrowIfNull(ids);
         if (ids.Count == 0) return;
 
-        // Staged records that were never committed (the save did not include them) are only forgotten.
         foreach (var record in _staged.Where(r => ids.Contains(r.Id)).ToList())
         {
             var entry = writer.Table.Entry(record);
@@ -81,26 +80,36 @@ public sealed class EfCoreSagaOutbox(
     public async Task<IReadOnlyList<SagaOutboxMessage>> GetPendingAsync(DateTimeOffset stagedBefore, int maxCount, CancellationToken ct)
     {
         var before = stagedBefore.UtcTicks;
-        var records = await reader.GetQueryable()
+        var query = reader.GetQueryable()
             .AsNoTracking()
-            .Where(r => r.StagedAtUtcTicks < before)
-            .OrderBy(r => r.StagedAtUtcTicks)
-            .Take(maxCount)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        var pending = new List<SagaOutboxMessage>(records.Count);
-        foreach (var record in records)
+            .Where(r => r.StagedAtUtcTicks < before);
+        var recordCount = await query.CountAsync(ct).ConfigureAwait(false);
+        var pending = new List<SagaOutboxMessage>();
+        var offset = 0;
+        while (offset < recordCount && pending.Count < maxCount)
         {
-            var type = SagaEventTypeNames.Resolve(record.EventType);
-            if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
-            {
-                logger.LogWarning("Saga outbox message {Id} has an unresolvable event type '{EventType}' and is skipped.",
-                    record.Id, record.EventType);
-                continue;
-            }
+            var records = await query
+                .OrderBy(r => r.StagedAtUtcTicks)
+                .ThenBy(r => r.Id)
+                .Skip(offset)
+                .Take(Math.Min(maxCount - pending.Count, recordCount - offset))
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            if (records.Count == 0) break;
+            offset += records.Count;
 
-            pending.Add(new SagaOutboxMessage(record.Id, @event, new DateTimeOffset(record.StagedAtUtcTicks, TimeSpan.Zero)));
+            foreach (var record in records)
+            {
+                var type = SagaEventTypeNames.Resolve(record.EventType);
+                if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
+                {
+                    logger.LogWarning("Saga outbox message {Id} has an unresolvable event type '{EventType}' and is skipped.",
+                        record.Id, record.EventType);
+                    continue;
+                }
+
+                pending.Add(new SagaOutboxMessage(record.Id, @event, new DateTimeOffset(record.StagedAtUtcTicks, TimeSpan.Zero)));
+            }
         }
 
         return pending;
