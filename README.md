@@ -1,4 +1,12 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kadirdemirkaya/SagaFlux/main/assets/icon.png" alt="SagaFlux logo" width="112" />
+</p>
+
 # SagaFlux (EventFlux.Saga)
+
+[![NuGet](https://img.shields.io/nuget/v/EventFlux.Saga.svg)](https://www.nuget.org/packages/EventFlux.Saga)
+[![Downloads](https://img.shields.io/nuget/dt/EventFlux.Saga.svg)](https://www.nuget.org/packages/EventFlux.Saga)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/kadirdemirkaya/SagaFlux/blob/main/LICENSE.txt)
 
 A lightweight, MIT-licensed saga / process-manager layer for the [EventFlux](https://github.com/kadirdemirkaya/EventFlux) mediator. Sagas run in-process first, with distribution as an option, and compensation and isolated unit testing are first-class features.
 

@@ -6,6 +6,8 @@ repository owner.
 ## Unreleased
 
 - Documentation split into topic pages under `documentation/`; README is a short entry page.
+- Every package carries the project logo as its NuGet icon; README shows the logo and NuGet/license badges.
+- Remove a reference to a non-public file from the `CompensationEntry` XML documentation.
 
 ## 1.0.0 - 2026-11-08
 

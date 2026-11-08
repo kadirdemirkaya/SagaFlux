@@ -7,7 +7,7 @@ namespace EventFlux.Saga;
 /// Entries are append-only: running a compensation marks the entry with <see cref="CompensatedAt"/> instead of
 /// removing it, so the full history stays available for auditing. Only the <see cref="CompensationActionKey"/> is
 /// persisted, never the delegate — keep keys stable across deployments, otherwise instances created by an older
-/// version cannot be compensated (see CLAUDE.md §5.1).
+/// version cannot be compensated.
 /// </remarks>
 /// <param name="StateName">The state the instance entered when the entry was recorded.</param>
 /// <param name="CompensationActionKey">The key of the compensation action registered with <c>OnCompensate</c>.</param>
