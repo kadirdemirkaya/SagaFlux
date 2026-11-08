@@ -3,6 +3,10 @@
 All packages of the repository share one version. The release number and the NuGet publish are chosen by the
 repository owner.
 
+## Unreleased
+
+- Documentation split into topic pages under `documentation/`; README is a short entry page.
+
 ## 1.0.0 - 2026-11-08
 
 First stable release of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
