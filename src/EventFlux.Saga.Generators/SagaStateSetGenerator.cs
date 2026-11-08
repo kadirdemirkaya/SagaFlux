@@ -92,7 +92,8 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
         var hasGenericContainer = false;
         for (var type = symbol; type is not null; type = type.ContainingType)
         {
-            isAccessible &= type.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal;
+            isAccessible &= !type.IsFileLocal
+                && type.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal;
             hasGenericContainer |= type.Arity > 0;
         }
         return new SagaStateSetModel(
@@ -195,6 +196,6 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
     {
         "Initial" => States + ".Initial",
         "Final" => States + ".Final",
-        _ => $"{States}.Define(\"{name}\", {(value is >= int.MinValue and <= int.MaxValue ? value : index)})"
+        _ => $"{States}.Define(\"{name}\", {(value is >= int.MinValue and <= int.MaxValue ? value : index).ToString(System.Globalization.CultureInfo.InvariantCulture)})"
     };
 }

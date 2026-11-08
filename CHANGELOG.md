@@ -8,6 +8,9 @@ repository owner.
 First release candidate of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
 
 ### EventFlux.Saga
+- Clarify existing post-persistence error boundaries: exceptions need not mean rollback; failed final removal
+  without an outbox is not guaranteed to recover on redelivery, and post-send outbox completion errors can
+  propagate while pending messages can be sent again. No runtime behavior or recovery policy changes.
 - Fix `InMemorySagaTimeoutStore` to reject pre-cancelled calls to schedule, cancel, cancel-all, get-due and
   complete with `OperationCanceledException`, preserving pending timeouts and count; keep schedule's null validation first.
 - Fix `InMemorySagaRepository<TState>.SaveAsync` to preserve the caller's `Version` and stored data when JSON
@@ -28,8 +31,8 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - `.Ask(request, onResponse)` and `SagaContext.AskAsync(...)`: send an EventFlux request from a transition and use
   the response (`ISagaRequester`); `SagaConfigurationException` for setup errors, never handled by `OnFault`.
 - Transactional outbox: `ISagaOutbox`, `UseOutbox<T>()`, `ISagaOutboxDispatcher` and a polling hosted service
-  (`OutboxPollingInterval`, `OutboxDispatchDelay`, `OutboxBatchSize`); with an outbox a failed send no longer fails
-  the message.
+  (`OutboxPollingInterval`, `OutboxDispatchDelay`, `OutboxBatchSize`); transport send errors are logged for
+  recovery except caller cancellation. Post-save cleanup and outbox completion errors can still propagate.
 - `RemoveWhenFinal()` and `ISagaRepository.RemoveAsync` (default: not supported; in-memory and EF Core implement it).
 - Transition observers (`ISagaTransitionObserver`); records carry the handled `Fault` and whether the instance was
   `Removed`.
@@ -65,6 +68,10 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - `UseRedisDistributedLock()` on DistributedLock.Redis (Medallion.Threading).
 
 ### EventFlux.Saga.Generators
+- Format generated ordinal literals independently of the build culture, fixing invalid C# for negative
+  values when the culture uses a non-ASCII minus sign; preserve persisted names and ordinal mappings.
+- Report SAGA005 and skip generation for file-local enums and enums inside file-local containing types,
+  avoiding inaccessible references in generated files without suppressing healthy same-named siblings.
 - Report SAGA004 for aliased numeric values, SAGA005 for inaccessible enums/containing types,
   SAGA006 for generic containing types and SAGA007 for colliding namespace-level set names; skip
   affected sets instead of emitting compiler errors or crashing. Preserve accessible nested sets.

@@ -285,12 +285,16 @@ During(OrderStatesSet.Initial,
 - `Initial` and `Final` map to the built-in states.
 - Top-level public/internal enums (including the global namespace) and accessible nested enums in
   non-generic types keep the namespace-level `{EnumName}Set` name. A nested enum and every containing
-  type must be accessible from that namespace (`public`, `internal` or `protected internal`).
+  type must be accessible from that namespace (`public`, `internal` or `protected internal`) and must not
+  be file-local. File-local enums and enums inside file-local types produce **SAGA005** with no set,
+  because the separate generated file cannot access them.
 - Invalid inputs produce an error and no set for the affected enum, rather than invalid generated code:
   **SAGA004** for aliased numeric values, **SAGA005** for an inaccessible enum or containing type,
   **SAGA006** for a generic containing type, and **SAGA007** for multiple eligible enums that would
   generate the same set name in one namespace (reported on each conflicting enum). Use distinct numeric
   values and enum names, or move the enum to an accessible, non-generic type or another namespace.
+- Ordinal literals use culture-independent C# formatting, including ASCII minus signs for negative values;
+  persisted state names and ordinal mappings are unchanged.
 - Values outside the `int` range, including large `ulong` values, use the member's zero-based declaration
   index as the ordinal; `From(enum)` still matches the declared numeric value.
 - Commit an `OrderStates.sagastates` file listing the deployed states (one per line) and add it as
@@ -358,8 +362,10 @@ services.AddSagaFlux(typeof(Program).Assembly)
 
 - **Staging:** published events are written to the `SagaOutbox` table in the same `SaveChanges` as the instance,
   so both are committed, or neither.
-- **Normal path:** right after the save, the events are sent and their rows deleted.
-- **Recovery:** a send that fails is not an error any more. A hosted service sends the rows left behind:
+- **Normal path:** after the save and post-save cleanup/notification, the events are sent and their rows deleted.
+- **Recovery:** transport send failures are logged and left to the outbox dispatcher, except cancellation when
+  the caller's token is cancelled, which propagates. This does not suppress post-save cleanup or outbox
+  completion errors. A hosted service sends the rows left behind:
   - It polls every `OutboxPollingInterval` (default 5 s).
   - It only picks rows older than `OutboxDispatchDelay` (default 30 s).
   - Rows with unresolvable event types are logged and retained, without blocking later valid messages.
@@ -368,6 +374,35 @@ services.AddSagaFlux(typeof(Program).Assembly)
 - **Scope:** use it for sagas stored with `UseEfCore` on the same `DbContext`. The outbox commits with that
   repository.
 - **Custom stores:** implement `ISagaOutbox` and register it with `UseOutbox<T>()`.
+
+### Errors after persistence and redelivery
+
+**An exception from a saga invocation does not mean rollback.** State may already have been committed
+before a later operation fails. Saving state, removing a final instance, cleaning up timeouts, notifying
+observers and sending events are not one atomic operation.
+
+- **Final removal without an outbox:** `RemoveWhenFinal()` saves `Final` before attempting removal.
+  A removal error propagates before timeout cleanup, observer notification or outgoing sends; even a
+  `SagaConcurrencyException` at removal is outside the save retry controlled by `MaxConcurrencyRetries`.
+  In the characterized Active-to-Final case, a failure before deletion leaves the saved `Final` instance
+  and its pending timeout intact, and the intended outgoing event is not sent. Once the removal failure
+  is cleared, redelivering that same event is ignored because this saga has no matching transition in
+  `Final`: it neither retries removal/timeout cleanup nor recovers the outgoing event. Redelivery is
+  therefore not a guaranteed recovery mechanism. This is not evidence of saga-row loss or broker loss;
+  other storage failures can have uncertain outcomes. Separately, an EF Core stale tracked delete can
+  raise a concurrency exception while preserving a newer `Final` row; that repository-level case does
+  not establish a full runner or broker delivery outcome.
+- **Outbox completion after a successful send:** `ISagaOutbox.CompleteAsync` runs outside the transport
+  send-error catch. Its exception can reach the caller after both the state commit and a successful
+  send. If the outbox row remains pending, `ISagaOutboxDispatcher` can send the same stored message again
+  after `OutboxDispatchDelay` and then complete it. Duplicate sends in this window are consistent with
+  at-least-once delivery, not by themselves a bug or an exactly-once guarantee. Outbox dispatch recovers
+  pending outgoing messages, not final-instance cleanup or skipped observer notifications.
+
+Make receivers idempotent using application-level event identity, and inspect persisted state and pending
+work before deciding how to reconcile a failed invocation; do not blindly replay business actions or
+assume a retry repairs cleanup. These are existing behavior boundaries, not a new error-swallowing,
+retry or opt-in cleanup policy. No automatic final-instance cleanup recovery is provided here.
 
 ## Distributed sagas (RabbitMQ)
 

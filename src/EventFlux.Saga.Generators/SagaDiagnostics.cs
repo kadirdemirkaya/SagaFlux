@@ -34,7 +34,7 @@ internal static class SagaDiagnostics
     public static readonly DiagnosticDescriptor InaccessibleEnum = new(
         "SAGA005",
         "Inaccessible saga state enum",
-        "Enum '{0}' or a containing type is inaccessible from its namespace-level generated set; use public, internal or protected internal accessibility",
+        "Enum '{0}' or a containing type is inaccessible from its namespace-level generated set; use non-file-local types with public, internal or protected internal accessibility",
         Category,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
