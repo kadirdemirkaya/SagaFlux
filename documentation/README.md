@@ -1,34 +1,11 @@
 # SagaFlux documentation
 
-Topic pages for the EventFlux.Saga packages. The [README](../README.md) has the quick start, the package list
-and build instructions.
+Topic pages for the EventFlux.Saga packages. The quick start is in the [README](../README.md).
 
-- [Correlation and delivery](correlation-and-delivery.md)
-  - [Correlating events](correlation-and-delivery.md#correlating-events)
-  - [Delivery and duplicates](correlation-and-delivery.md#delivery-and-duplicates)
-- [State machine](state-machine.md)
-  - [More state machine building blocks](state-machine.md#more-state-machine-building-blocks)
-  - [Waiting for several events](state-machine.md#waiting-for-several-events)
-  - [Asking for a decision](state-machine.md#asking-for-a-decision)
-  - [Compensating actions](state-machine.md#compensating-actions)
-  - [Timeouts](state-machine.md#timeouts)
-  - [Generated states](state-machine.md#generated-states)
-- [Persistence and outbox](persistence.md)
-  - [In-memory persistence](persistence.md#in-memory-persistence)
-  - [Persistence (EF Core)](persistence.md#persistence-ef-core)
-  - [Transactional outbox (EF Core)](persistence.md#transactional-outbox-ef-core)
-  - [Errors after persistence and redelivery](persistence.md#errors-after-persistence-and-redelivery)
-- [Transports and distributed lock](transports.md)
-  - [Distributed sagas (RabbitMQ)](transports.md#distributed-sagas-rabbitmq)
-  - [Distributed sagas (Redis Streams)](transports.md#distributed-sagas-redis-streams)
-  - [Distributed instance lock (optional)](transports.md#distributed-instance-lock-optional)
-- [Observability and retention](observability.md)
-  - [Inspector](observability.md#inspector)
-  - [Tracing](observability.md#tracing)
-  - [Metrics (optional)](observability.md#metrics-optional)
-  - [Retention](observability.md#retention)
-- [Testing](testing.md)
-  - [Testing a saga (no database, no broker, no DI)](testing.md#testing-a-saga-no-database-no-broker-no-di)
-- [Extension points and stability](extension-points-and-stability.md)
-  - [Extension points and options](extension-points-and-stability.md#extension-points-and-options)
-  - [Stability and identity formats](extension-points-and-stability.md#stability-and-identity-formats)
+- [Correlation and delivery](correlation-and-delivery.md): correlating events, duplicates
+- [State machine](state-machine.md): branches, faults, joins, requests, compensation, timeouts, generated states
+- [Persistence and outbox](persistence.md): in-memory, EF Core, outbox, errors after persistence
+- [Transports and distributed lock](transports.md): RabbitMQ, Redis Streams, instance lock
+- [Observability and retention](observability.md): inspector, tracing, metrics, retention
+- [Testing](testing.md): the Given/When/Then harness
+- [Extension points and stability](extension-points-and-stability.md): builder methods, options, stable formats

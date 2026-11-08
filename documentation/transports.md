@@ -1,8 +1,8 @@
 # Transports and distributed lock
 
-Running sagas across services with the RabbitFlow and RedisFlow adapters, and the optional instance lock.
+Running sagas across services with the RabbitFlow and RedisFlow adapters. Saga definitions do not change.
 
-## Distributed sagas (RabbitMQ)
+## RabbitMQ (RabbitFlow)
 
 ```bash
 dotnet add package EventFlux.Saga.RabbitFlow
@@ -10,18 +10,15 @@ dotnet add package EventFlux.Saga.RabbitFlow
 
 ```csharp
 services.AddEventFluxRabbitFlow(typeof(Program).Assembly, connectionFactory, "orders");
-services.AddSagaFlux(typeof(Program).Assembly)
-        .UseRabbitFlow(options => options.ExchangeName = "sagas");
+services.AddSagaFlux(typeof(Program).Assembly).UseRabbitFlow(options => options.ExchangeName = "sagas");
 ```
 
-- Saga events are published through the EventFlux.RabbitFlow broker.
-- On startup, a hosted service subscribes to every event the sagas react to, so an instance can be driven
-  by events from other services. The saga definitions stay unchanged.
-- The broker is a singleton, so subscriptions live until the host stops.
-- A message whose saga step throws is not acknowledged: EventFlux.RabbitFlow requeues it or moves it to a
-  dead-letter queue (`RabbitFlowOptions.OnFailure`, `MaxDeliveryAttempts`). Messages are not lost.
+- Saga events are published through the EventFlux.RabbitFlow broker; a hosted service subscribes to every event
+  the sagas react to until the host stops.
+- A message whose saga step throws is not acknowledged: RabbitFlow requeues or dead-letters it
+  (`RabbitFlowOptions.OnFailure`, `MaxDeliveryAttempts`).
 
-## Distributed sagas (Redis Streams)
+## Redis Streams (RedisFlow)
 
 ```bash
 dotnet add package EventFlux.Saga.RedisFlow
@@ -29,34 +26,25 @@ dotnet add package EventFlux.Saga.RedisFlow
 
 ```csharp
 services.AddRedisEventQueue(configuration, typeof(Program).Assembly); // reads the "RedisStream" section
-services.AddSagaFlux(typeof(Program).Assembly)
-        .UseRedisFlow();
+services.AddSagaFlux(typeof(Program).Assembly).UseRedisFlow();
 ```
 
-- Saga events are appended to the EventFlux.RedisFlow stream with its typed `PublishAsync<TEvent>`, in the
-  package's own format.
-- No subscription step is needed: the RedisFlow worker reads the stream and dispatches through `IEventBus`,
-  which SagaFlux routes to the sagas.
-- A failing saga step leaves the entry pending. RedisFlow retries it after `RetryIdleTime` and moves it to the
-  dead-letter stream after `MaxDeliveryAttempts`.
+- Saga events are appended to the EventFlux.RedisFlow stream; its worker dispatches them through `IEventBus`,
+  so no subscription step is needed.
+- A failing saga step leaves the entry pending; RedisFlow retries it after `RetryIdleTime` and dead-letters it
+  after `MaxDeliveryAttempts`.
 
 ## Distributed instance lock (optional)
 
 ```csharp
 services.AddSagaFlux(typeof(Program).Assembly)
-        .UseRabbitFlow()                      // any transport
+        .UseRabbitFlow()
         .UseRedisDistributedLock(o => o.AcquireTimeout = TimeSpan.FromSeconds(10));
 ```
 
-- Optimistic concurrency already keeps instances consistent. The lock only stops nodes from repeating
-  conflicting work when many events for the same instance arrive at once.
-- It builds on a mature third-party distributed lock library, on the RedisFlow connection. SagaFlux does not
-  implement a lock of its own.
-- The lock covers loading, executing and saving an instance. Published events are sent after it is released.
-- Any other `ISagaLockProvider` can be plugged in with `UseLockProvider<T>()`.
+- Optimistic concurrency already keeps instances consistent; the lock only avoids repeated conflicting work when
+  many events for one instance arrive at once. It works with any transport and uses the RedisFlow connection.
+- It covers load, execute and save; published events are sent after release. Another provider:
+  `UseLockProvider<T>()`. Options: [Extension points](extension-points-and-stability.md#extension-points-and-options).
 
-See also: [Delivery and duplicates](correlation-and-delivery.md#delivery-and-duplicates), [Extension points and options](extension-points-and-stability.md#extension-points-and-options) (adapter options).
-
----
-
-[Documentation index](README.md)
+See also: [Delivery and duplicates](correlation-and-delivery.md#delivery-and-duplicates).
