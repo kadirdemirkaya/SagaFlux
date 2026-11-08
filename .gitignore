@@ -483,3 +483,11 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 dump.rdb
+
+# Local-only working files
+/CLAUDE.md
+/ANTIGRAVITY.md
+/roadmap.md
+/improvements.md
+/.claude/
+/docs/
