@@ -108,19 +108,19 @@ switching to a broker only changes the registration.
 
 ## Packages
 
-All packages are pre-release (**0.1.0**) and share one version. They move to 1.0.0 together once the
-public API has been reviewed and frozen.
+All packages are at **1.0.0** and share one version. Versioning follows SemVer: the public API is stable,
+and a breaking change needs a new major version.
 
 | Package | Purpose | Version |
 |---|---|---|
-| `EventFlux.Saga` | Core: `Saga<TState>`, state machine DSL, in-process execution | 0.1.0 |
-| `EventFlux.Saga.Testing` | Given/When/Then test harness | 0.1.0 |
-| `EventFlux.Saga.EfCore` | Persistence on top of `EfCore.RepositoryPack` | 0.1.0 |
-| `EventFlux.Saga.RabbitFlow` | RabbitMQ transport adapter on `EventFlux.RabbitFlow` (>= 1.3.2) | 0.1.0 |
-| `EventFlux.Saga.RedisFlow` | Redis Streams transport adapter on `EventFlux.RedisFlow` (>= 1.1.1), optional Redis instance lock | 0.1.0 |
-| `EventFlux.Saga.Generators` | Compile-time state definitions from a `[SagaStateSet]` enum | 0.1.0 |
-| `EventFlux.Saga.Inspector` | Transition timeline with JSON and HTML endpoints | 0.1.0 |
-| `EventFlux.Saga.Inspector.EfCore` | Durable EF Core timeline store for the inspector | 0.1.0 |
+| `EventFlux.Saga` | Core: `Saga<TState>`, state machine DSL, in-process execution | 1.0.0 |
+| `EventFlux.Saga.Testing` | Given/When/Then test harness | 1.0.0 |
+| `EventFlux.Saga.EfCore` | Persistence on top of `EfCore.RepositoryPack` | 1.0.0 |
+| `EventFlux.Saga.RabbitFlow` | RabbitMQ transport adapter on `EventFlux.RabbitFlow` (>= 1.3.2) | 1.0.0 |
+| `EventFlux.Saga.RedisFlow` | Redis Streams transport adapter on `EventFlux.RedisFlow` (>= 1.1.1), optional Redis instance lock | 1.0.0 |
+| `EventFlux.Saga.Generators` | Compile-time state definitions from a `[SagaStateSet]` enum | 1.0.0 |
+| `EventFlux.Saga.Inspector` | Transition timeline with JSON and HTML endpoints | 1.0.0 |
+| `EventFlux.Saga.Inspector.EfCore` | Durable EF Core timeline store for the inspector | 1.0.0 |
 
 All packages target .NET 8 and EventFlux 2.1.1. .NET 8 is the baseline because it is the current LTS release
 that EventFlux 2.x, RabbitFlow and RedisFlow support; other target frameworks can be added on request.

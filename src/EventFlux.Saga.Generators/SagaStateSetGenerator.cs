@@ -15,6 +15,7 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
     private const string State = "global::EventFlux.Saga.SagaState";
     private const string States = "global::EventFlux.Saga.SagaStates";
     private static readonly string[] ReservedNames = { "All", "From", "TryParse" };
+    private static readonly string GeneratorVersion = typeof(SagaStateSetGenerator).Assembly.GetName().Version.ToString(3);
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -143,7 +144,7 @@ public sealed class SagaStateSetGenerator : IIncrementalGenerator
         }
         sb.AppendLine();
         sb.Append("/// <summary>Saga states generated from <see cref=\"").Append(model.EnumFullName).AppendLine("\"/>.</summary>");
-        sb.AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"EventFlux.Saga.Generators\", \"0.1.0\")]");
+        sb.Append("[global::System.CodeDom.Compiler.GeneratedCode(\"EventFlux.Saga.Generators\", \"").Append(GeneratorVersion).AppendLine("\")]");
         sb.Append(access).Append(" static partial class ").AppendLine(className);
         sb.AppendLine("{");
 

@@ -62,6 +62,19 @@ public class GeneratorDriverTests
     }
 
     [Fact]
+    public void Generated_code_attribute_carries_the_generator_assembly_version()
+    {
+        var (_, _, run) = Run(Source);
+
+        var version = typeof(SagaStateSetGenerator).Assembly.GetName().Version!.ToString(3);
+        var generated = Assert.Single(run.GeneratedTrees).ToString();
+        Assert.Equal(3, version.Split('.').Length);
+        Assert.Equal(typeof(SagaState).Assembly.GetName().Version!.ToString(3), version);
+        Assert.Contains($"[global::System.CodeDom.Compiler.GeneratedCode(\"EventFlux.Saga.Generators\", \"{version}\")]", generated);
+        Assert.Single(generated.Split('\n'), line => line.Contains("GeneratedCode("));
+    }
+
+    [Fact]
     public void Internal_enum_gets_internal_class()
     {
         var (_, _, run) = Run("[EventFlux.Saga.SagaStateSet] internal enum Steps { Initial, Running }");

@@ -3,9 +3,9 @@
 All packages of the repository share one version. The release number and the NuGet publish are chosen by the
 repository owner.
 
-## Unreleased
+## 1.0.0 - 2026-11-08
 
-First release candidate of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
+First stable release of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
 
 ### EventFlux.Saga
 - Hide the engine members of `Saga<TState>` and `SagaPublishedEvent` that the runtime calls from IntelliSense;
