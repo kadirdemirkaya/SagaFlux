@@ -39,8 +39,8 @@ public static class SagaFluxRedisFlowBuilderExtensions
     }
 
     /// <summary>
-    /// Serializes the processing of each saga instance across nodes with a Redis lock (DistributedLock.Redis), on
-    /// the <c>IConnectionMultiplexer</c> that EventFlux.RedisFlow registers.
+    /// Serializes the processing of each saga instance across nodes with a Redis lock (the distributed lock
+    /// dependency), on the <c>IConnectionMultiplexer</c> that EventFlux.RedisFlow registers.
     /// </summary>
     /// <remarks>
     /// Optional: optimistic concurrency already keeps instances consistent. The lock avoids repeated conflicting

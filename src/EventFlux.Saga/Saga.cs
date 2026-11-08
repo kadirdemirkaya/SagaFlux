@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using EventFlux.Abstractions;
 using EventFlux.Saga.Internal;
 
@@ -42,6 +43,7 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// <summary>
     /// Gets the event types this saga reacts to, in any state.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IReadOnlyCollection<Type> EventTypes => _eventTypes;
 
     /// <summary>
@@ -106,6 +108,7 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// Gets whether instances are removed from the repository when they reach <see cref="SagaStates.Final"/>
     /// (see <see cref="RemoveWhenFinal"/>).
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public bool RemovesWhenFinal { get; private set; }
 
     /// <summary>
@@ -190,11 +193,13 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// <summary>
     /// Gets the timeout event types declared with <c>Schedule&lt;TTimeout&gt;(...)</c> on a transition.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IReadOnlyCollection<Type> TimeoutTypes => _timeoutTypes;
 
     /// <summary>
     /// Gets the registered compensation keys.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IReadOnlyCollection<string> CompensationKeys => _compensations.Keys;
 
     /// <summary>
@@ -216,6 +221,7 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when an event has neither a <see cref="CorrelateBy{TEvent}"/>
     /// selector nor implements <see cref="ICorrelatedEvent"/>.</exception>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public void Validate()
     {
         foreach (var key in _transitions.Values.SelectMany(l => l).Concat(_activeTransitions).SelectMany(t => t.RecordedCompensations))
@@ -238,6 +244,7 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// </summary>
     /// <param name="eventType">The runtime event type.</param>
     /// <returns><c>true</c> when at least one transition is triggered by the type.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public bool Handles(Type eventType)
         => _eventTypes.Any(t => t.IsAssignableFrom(eventType))
            || (_compensations.Count > 0 && IsCompensatingEvent(eventType) && CanCorrelate(eventType));
@@ -251,6 +258,7 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
     /// <param name="event">The event.</param>
     /// <returns>The correlation id of the saga instance the event belongs to.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the event cannot be correlated.</exception>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public Guid GetCorrelationId(object @event)
     {
         ArgumentNullException.ThrowIfNull(@event);

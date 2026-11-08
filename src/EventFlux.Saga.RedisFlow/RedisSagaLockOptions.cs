@@ -19,7 +19,7 @@ public sealed class RedisSagaLockOptions
 
     /// <summary>
     /// Gets or sets the lifetime of a lock whose holder stopped renewing it (for example a crashed node). Held locks
-    /// are renewed automatically. <c>null</c> keeps the DistributedLock.Redis default (30 seconds).
+    /// are renewed automatically. <c>null</c> keeps the distributed lock dependency's default (30 seconds).
     /// </summary>
     public TimeSpan? Expiry { get; set; }
 }

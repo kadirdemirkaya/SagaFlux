@@ -4,8 +4,9 @@ namespace EventFlux.Saga;
 
 /// <summary>
 /// The <see cref="System.Diagnostics.ActivitySource"/> SagaFlux reports saga work to, so any tracing pipeline that
-/// listens to it (for example OpenTelemetry with <c>AddSource(SagaFluxDiagnostics.ActivitySourceName)</c>) sees saga
-/// transitions next to the rest of the application's traces. Nothing is recorded when no listener is attached.
+/// listens to it (any <see cref="System.Diagnostics.ActivityListener"/> or tracing SDK subscribed to
+/// <see cref="ActivitySourceName"/>) sees saga transitions next to the rest of the application's traces. Nothing is
+/// recorded when no listener is attached.
 /// </summary>
 /// <remarks>
 /// One activity (<see cref="ActivityKind.Internal"/>) covers an event applied to one saga instance, named

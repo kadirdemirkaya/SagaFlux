@@ -8,6 +8,9 @@ repository owner.
 First release candidate of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.
 
 ### EventFlux.Saga
+- Hide the engine members of `Saga<TState>` and `SagaPublishedEvent` that the runtime calls from IntelliSense;
+  they stay public and unchanged. README documents extension points, options, identity formats and
+  infrastructure types.
 - Clarify existing post-persistence error boundaries: exceptions need not mean rollback; failed final removal
   without an outbox is not guaranteed to recover on redelivery, and post-send outbox completion errors can
   propagate while pending messages can be sent again. No runtime behavior or recovery policy changes.
@@ -37,7 +40,7 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - Transition observers (`ISagaTransitionObserver`); records carry the handled `Fault` and whether the instance was
   `Removed`.
 - Tracing through the `EventFlux.Saga` `ActivitySource` (`SagaFluxDiagnostics`): one activity per saga and
-  event, with transition tags; works with OpenTelemetry without extra packages.
+  event, with transition tags; works with any `ActivitySource` listener without extra packages.
 - Optional operational metrics on the `EventFlux.Saga` meter (`System.Diagnostics.Metrics`, no extra package):
   `sagaflux.dispatcher.dispatch.operations` and `sagaflux.dispatcher.completion.operations` counters for the outbox
   and timeout batch dispatchers, tagged only `kind` (`outbox` / `timeout`) and `outcome` (`success` / `failure` /
@@ -76,7 +79,7 @@ First release candidate of the EventFlux.Saga package family. Every package targ
   EventFlux 2.1.1 dependency as 1.1.0.
 - Redis Streams transport on EventFlux.RedisFlow 1.1.1 using its typed `PublishAsync<TEvent>`; failing steps stay
   pending, are retried and dead-lettered by RedisFlow.
-- `UseRedisDistributedLock()` on DistributedLock.Redis (Medallion.Threading).
+- `UseRedisDistributedLock()` on a mature third-party distributed lock library.
 
 ### EventFlux.Saga.Generators
 - Format generated ordinal literals independently of the build culture, fixing invalid C# for negative

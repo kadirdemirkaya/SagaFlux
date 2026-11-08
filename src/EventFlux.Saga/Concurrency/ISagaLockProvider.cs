@@ -14,8 +14,8 @@ namespace EventFlux.Saga.Concurrency;
 /// published are sent, so a saga that reacts to its own events does not wait on itself.
 /// </para>
 /// <para>
-/// Implementations wrap an existing distributed lock library (for example <c>EventFlux.Saga.RedisFlow</c> uses
-/// DistributedLock.Redis); SagaFlux does not implement a lock of its own.
+/// Implementations wrap an existing distributed lock library (for example <c>EventFlux.Saga.RedisFlow</c> builds on
+/// its distributed lock dependency); SagaFlux does not implement a lock of its own.
 /// </para>
 /// </remarks>
 public interface ISagaLockProvider

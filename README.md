@@ -82,12 +82,19 @@ Every event a saga reacts to must lead to one instance id:
 
 ## What it is, what it is not
 
-> SagaFlux, ağır bir broker topolojisi ve ticari lisans gerektirmeden EventFlux ekosisteminde saga/process-manager pattern'i uygulamanı sağlayan, önce in-process sonra opsiyonel dağıtık çalışan, test edilebilirliği ve telafi (compensation) mantığını birinci sınıf vatandaş yapan hafif bir kütüphanedir.
+> SagaFlux is a lightweight library that lets you implement the saga / process-manager pattern in the EventFlux
+> ecosystem without a heavy broker topology or a commercial license. It runs in-process first and distributed
+> as an option, and it makes testability and compensation logic first-class citizens.
 
 **It is:**
 - a state machine DSL (`During` / `When` / `Then` / `Publish` / `TransitionTo`)
 - correlation and optimistic concurrency
 - compensating actions
+- durable timeouts (`Schedule` / `Unschedule`)
+- a transactional outbox for published events
+- thin transport adapters for RabbitFlow and RedisFlow
+- a transition timeline inspector
+- a source generator for state definitions
 - a Given/When/Then test harness
 
 **It is not:**
@@ -452,8 +459,8 @@ services.AddSagaFlux(typeof(Program).Assembly)
 
 - Optimistic concurrency already keeps instances consistent. The lock only stops nodes from repeating
   conflicting work when many events for the same instance arrive at once.
-- It uses [DistributedLock.Redis](https://github.com/madelson/DistributedLock) on the RedisFlow connection.
-  SagaFlux does not implement a lock of its own.
+- It builds on a mature third-party distributed lock library, on the RedisFlow connection. SagaFlux does not
+  implement a lock of its own.
 - The lock covers loading, executing and saving an instance. Published events are sent after it is released.
 - Any other `ISagaLockProvider` can be plugged in with `UseLockProvider<T>()`.
 
@@ -488,10 +495,17 @@ timeouts.
 ## Tracing
 
 SagaFlux reports every event applied to a saga instance to the `System.Diagnostics.ActivitySource` named
-`EventFlux.Saga` (`SagaFluxDiagnostics.ActivitySourceName`). No extra package is needed. With OpenTelemetry:
+`EventFlux.Saga` (`SagaFluxDiagnostics.ActivitySourceName`). No extra package is needed: any `ActivitySource`
+listener or tracing SDK that subscribes to that source name receives the activities. With the built-in listener:
 
 ```csharp
-builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource(SagaFluxDiagnostics.ActivitySourceName));
+using var listener = new ActivityListener
+{
+    ShouldListenTo = source => source.Name == SagaFluxDiagnostics.ActivitySourceName,
+    Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+    ActivityStopped = activity => Console.WriteLine($"{activity.DisplayName} {activity.Duration}")
+};
+ActivitySource.AddActivityListener(listener);
 ```
 
 - **Activity:** one per saga and event, named `"{Saga} {Event}"`.
@@ -572,6 +586,63 @@ SagaTestHarness.For<ReservationSaga, ReservationState>()
 ```
 
 Failed assertions throw `SagaAssertionException`, so the harness works with any test framework.
+
+## Extension points and options
+
+`AddSagaFlux(...)` returns a `SagaFluxBuilder`; every default can be replaced from it.
+
+| Builder method | What it does | Default lifetime |
+|---|---|---|
+| `AddSaga<TSaga, TState>()` | Registers one saga | — |
+| `AddSagas(params Assembly[] assemblies)` | Registers every saga with a public parameterless constructor in the assemblies (`AddSagaFlux(assemblies)` already calls it) | — |
+| `UseRepository<TState, TRepository>(lifetime)` | Replaces the `ISagaRepository<TState>` of one state type (default: in-memory) | `Scoped` |
+| `UseTransport<TTransport>(lifetime)` | Replaces the `ISagaTransport` that sends published events (default: in-process) | `Transient` |
+| `UseTimeoutStore<TStore>(lifetime)` | Replaces the `ISagaTimeoutStore` (default: in-memory) | `Scoped` |
+| `UseOutbox<TOutbox>(lifetime)` | Stages published events in an `ISagaOutbox` and registers the outbox dispatcher | `Scoped` |
+| `UseLockProvider<TProvider>(lifetime)` | Replaces the `ISagaLockProvider` (default: none, optimistic concurrency only) | `Singleton` |
+| `UseTimeoutPolling()` | Registers the timeout hosted service; added automatically when a saga declares `Schedule`, call it when timeouts are only scheduled from actions with `ctx.Schedule(...)` | — |
+
+`SagaFluxOptions` (the `configure` argument of `AddSagaFlux(configure, assemblies)`):
+
+- `MaxConcurrencyRetries`: attempts on a version conflict.
+- `EnableTimeoutPolling` (default `true`): set `false` to call `ISagaTimeoutDispatcher.DispatchDueAsync()`
+  yourself. `TimeoutPollingInterval`, `TimeoutBatchSize` and `TimeoutRetryDelay` tune the hosted service.
+- `EnableOutboxPolling` (default `true`): set `false` to call `ISagaOutboxDispatcher.DispatchPendingAsync()`
+  yourself. `OutboxPollingInterval`, `OutboxDispatchDelay` and `OutboxBatchSize` tune the hosted service.
+
+Adapter options:
+
+- `UseRabbitFlow(o => ...)`: `ExchangeName` (default: the EventFlux.RabbitFlow default exchange) and
+  `SubscribeToSagaEvents` (default `true`; set `false` when the events the sagas react to are subscribed
+  elsewhere).
+- `UseRedisDistributedLock(o => ...)`: `KeyPrefix` (default `sagaflux:lock:`, key `{prefix}{saga}:{correlation id}`),
+  `AcquireTimeout` (default 30 seconds) and `Expiry` (lifetime of a lock whose holder stopped renewing it;
+  `null` keeps the library default of 30 seconds).
+
+## Stability and identity formats
+
+These formats are part of the public contract and stay as they are:
+
+- **Saga name:** the short saga type name (`OrderSaga`) is used in the distributed lock key, the activity name
+  and tags, and the inspector timeline.
+- **Timeout key:** the full name of the timeout event type (`SagaTimeoutKeys.For<T>()`), so scheduling the same
+  type again replaces the pending timeout.
+- **Persisted event type name:** `"Namespace.Type, Assembly"` without a version (`SagaEventTypeNames.GetName`),
+  used for EF Core timeouts and outbox rows. This format is permanently frozen; rename or move a type with
+  `[SagaEventFormerName(...)]`.
+
+Infrastructure types:
+
+- `ISagaEventRouter`, `ISagaEventCatalog` and `SagaEventTypeNames` are public so that adapters and stores can use
+  them; application code does not need them.
+- The lock abstraction (`ISagaLockProvider`, `NoSagaLockProvider`) lives in the `EventFlux.Saga.Concurrency`
+  namespace.
+- Register the EF Core and transport adapters through `UseEfCore<TState, TDbContext>()`,
+  `UseEfCoreTimeouts<TDbContext>()`, `UseEfCoreOutbox<TDbContext>()`, `UseRabbitFlow()`, `UseRedisFlow()` and
+  `UseRedisDistributedLock()` instead of constructing their types yourself.
+- A few `Saga<TState>` and `SagaPublishedEvent` members that the runtime calls (`Handles`, `GetCorrelationId`,
+  `Validate`, `EventTypes`, `TimeoutTypes`, `CompensationKeys`, `RemovesWhenFinal`, `FromEvent`, `SendAsync`) are
+  hidden from IntelliSense. They remain public and keep working.
 
 ## Building from source
 

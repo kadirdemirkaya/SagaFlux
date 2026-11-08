@@ -5,7 +5,7 @@ using StackExchange.Redis;
 namespace EventFlux.Saga.RedisFlow;
 
 /// <summary>
-/// <see cref="ISagaLockProvider"/> backed by DistributedLock.Redis (Medallion.Threading), on the Redis connection of
+/// <see cref="ISagaLockProvider"/> backed by the distributed lock dependency, on the Redis connection of
 /// EventFlux.RedisFlow. Only one node at a time processes an event of a given saga instance.
 /// </summary>
 /// <param name="redis">The Redis connection.</param>

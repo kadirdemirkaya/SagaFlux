@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using EventFlux.Abstractions;
 
 namespace EventFlux.Saga;
@@ -30,6 +31,7 @@ public sealed class SagaPublishedEvent
     /// </summary>
     /// <param name="event">The event.</param>
     /// <returns>The published event.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public static SagaPublishedEvent FromEvent(IEventRequest @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
@@ -49,6 +51,7 @@ public sealed class SagaPublishedEvent
     /// <param name="transport">The transport.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A task representing the publish operation.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public Task SendAsync(ISagaTransport transport, CancellationToken ct) => _send(transport, ct);
 
     /// <inheritdoc />
