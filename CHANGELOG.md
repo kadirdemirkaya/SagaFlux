@@ -59,11 +59,15 @@ First release candidate of the EventFlux.Saga package family. Every package targ
   instance.
 
 ### EventFlux.Saga.RabbitFlow
-- RabbitMQ transport on EventFlux.RabbitFlow 1.3.1: publishing with cancellation, subscriptions for every saga
+- Depend on EventFlux.RabbitFlow 1.3.2, a package-metadata update with the same public API, behavior and
+  EventFlux 2.1.1 dependency as 1.3.1.
+- RabbitMQ transport on EventFlux.RabbitFlow 1.3.2: publishing with cancellation, subscriptions for every saga
   event; failing saga steps are requeued or dead-lettered by RabbitFlow instead of lost.
 
 ### EventFlux.Saga.RedisFlow
-- Redis Streams transport on EventFlux.RedisFlow 1.1.0 using its typed `PublishAsync<TEvent>`; failing steps stay
+- Depend on EventFlux.RedisFlow 1.1.1, a package-metadata update with the same public API, behavior and
+  EventFlux 2.1.1 dependency as 1.1.0.
+- Redis Streams transport on EventFlux.RedisFlow 1.1.1 using its typed `PublishAsync<TEvent>`; failing steps stay
   pending, are retried and dead-lettered by RedisFlow.
 - `UseRedisDistributedLock()` on DistributedLock.Redis (Medallion.Threading).
 

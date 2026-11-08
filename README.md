@@ -109,8 +109,8 @@ public API has been reviewed and frozen.
 | `EventFlux.Saga` | Core: `Saga<TState>`, state machine DSL, in-process execution | 0.1.0 |
 | `EventFlux.Saga.Testing` | Given/When/Then test harness | 0.1.0 |
 | `EventFlux.Saga.EfCore` | Persistence on top of `EfCore.RepositoryPack` | 0.1.0 |
-| `EventFlux.Saga.RabbitFlow` | RabbitMQ transport adapter on `EventFlux.RabbitFlow` (>= 1.3.1) | 0.1.0 |
-| `EventFlux.Saga.RedisFlow` | Redis Streams transport adapter on `EventFlux.RedisFlow` (>= 1.1.0), optional Redis instance lock | 0.1.0 |
+| `EventFlux.Saga.RabbitFlow` | RabbitMQ transport adapter on `EventFlux.RabbitFlow` (>= 1.3.2) | 0.1.0 |
+| `EventFlux.Saga.RedisFlow` | Redis Streams transport adapter on `EventFlux.RedisFlow` (>= 1.1.1), optional Redis instance lock | 0.1.0 |
 | `EventFlux.Saga.Generators` | Compile-time state definitions from a `[SagaStateSet]` enum | 0.1.0 |
 | `EventFlux.Saga.Inspector` | Transition timeline with JSON and HTML endpoints | 0.1.0 |
 | `EventFlux.Saga.Inspector.EfCore` | Durable EF Core timeline store for the inspector | 0.1.0 |
