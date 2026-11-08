@@ -78,6 +78,7 @@ public sealed class EfCoreSagaTimeoutStore(
                 var type = SagaEventTypeNames.Resolve(record.EventType);
                 if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
                 {
+                    SagaStoreMetrics.TimeoutRowSkipped();
                     logger.LogWarning("Saga timeout {Id} for {CorrelationId} has an unresolvable event type '{EventType}' and is skipped.",
                         record.Id, record.CorrelationId, record.EventType);
                     continue;

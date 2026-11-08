@@ -22,7 +22,16 @@ internal sealed class SagaOutboxDispatcher(
             ct.ThrowIfCancellationRequested();
             try
             {
-                await SagaPublishedEvent.FromEvent(message.Event).SendAsync(transport, ct).ConfigureAwait(false);
+                try
+                {
+                    await SagaPublishedEvent.FromEvent(message.Event).SendAsync(transport, ct).ConfigureAwait(false);
+                }
+                catch (Exception sendError)
+                {
+                    SagaOperationalMetrics.OutboxDispatchFailed(sendError, ct);
+                    throw;
+                }
+                SagaOperationalMetrics.OutboxDispatchSucceeded();
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
             {
@@ -31,7 +40,16 @@ internal sealed class SagaOutboxDispatcher(
                 break;
             }
 
-            await outbox.CompleteAsync([message.Id], ct).ConfigureAwait(false);
+            try
+            {
+                await outbox.CompleteAsync([message.Id], ct).ConfigureAwait(false);
+            }
+            catch (Exception completionError)
+            {
+                SagaOperationalMetrics.OutboxCompletionFailed(completionError, ct);
+                throw;
+            }
+            SagaOperationalMetrics.OutboxCompletionSucceeded();
             sent++;
         }
 

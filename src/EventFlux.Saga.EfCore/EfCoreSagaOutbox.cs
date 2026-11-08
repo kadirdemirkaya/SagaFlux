@@ -103,6 +103,7 @@ public sealed class EfCoreSagaOutbox(
                 var type = SagaEventTypeNames.Resolve(record.EventType);
                 if (type is null || JsonSerializer.Deserialize(record.Payload, type) is not IEventRequest @event)
                 {
+                    SagaStoreMetrics.OutboxRowSkipped();
                     logger.LogWarning("Saga outbox message {Id} has an unresolvable event type '{EventType}' and is skipped.",
                         record.Id, record.EventType);
                     continue;

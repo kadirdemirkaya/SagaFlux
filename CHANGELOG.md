@@ -38,6 +38,10 @@ First release candidate of the EventFlux.Saga package family. Every package targ
   `Removed`.
 - Tracing through the `EventFlux.Saga` `ActivitySource` (`SagaFluxDiagnostics`): one activity per saga and
   event, with transition tags; works with OpenTelemetry without extra packages.
+- Optional operational metrics on the `EventFlux.Saga` meter (`System.Diagnostics.Metrics`, no extra package):
+  `sagaflux.dispatcher.dispatch.operations` and `sagaflux.dispatcher.completion.operations` counters for the outbox
+  and timeout batch dispatchers, tagged only `kind` (`outbox` / `timeout`) and `outcome` (`success` / `failure` /
+  `cancelled`). Nothing is recorded without a listener, and a failing listener never changes dispatch results.
 - `[SagaEventFormerName("...")]` and `SagaEventTypeNames`: renamed or moved event types keep resolving from
   stored names (for example pending EF Core timeouts).
 - Optional per-instance lock (`ISagaLockProvider`, `UseLockProvider<T>()`); published events are sent after the
@@ -49,6 +53,9 @@ First release candidate of the EventFlux.Saga package family. Every package targ
 - `Answer<TRequest, TResponse>(...)` answers `Ask` requests without handlers; `HaveAsked<T>()` / `NotHaveAsked<T>()`.
 
 ### EventFlux.Saga.EfCore
+- Optional `sagaflux.store.unresolved_row.observations` counter on the `EventFlux.Saga.EfCore` meter: one count
+  each time an outbox or timeout read skips a stored row it cannot use (tag `kind` only); rows, queries, logs and
+  skip behaviour are unchanged.
 - Fix durable timeout reads to continue past unresolvable event types while retaining those rows;
   preserve the valid-timeout batch limit, due-time order and exclusion of future timeouts.
 - Fix outbox recovery to read past rows with unresolvable event types without changing or deleting them;

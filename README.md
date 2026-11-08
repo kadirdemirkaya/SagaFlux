@@ -500,6 +500,40 @@ builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource(SagaFluxDiagnos
 - **Failures:** a failing event sets the activity status to `Error`.
 - **Cost:** nothing is recorded when no listener is attached.
 
+### Metrics (optional)
+
+SagaFlux also reports a few operational counters through `System.Diagnostics.Metrics`. They are off until your
+application subscribes to the meter names below (with its own `MeterListener` or metrics pipeline); there is no
+option to turn on and no extra package.
+
+| Meter | Counter | Unit | Tags |
+|---|---|---|---|
+| `EventFlux.Saga` | `sagaflux.dispatcher.dispatch.operations` | `{operation}` | `kind`: `outbox` / `timeout`, `outcome`: `success` / `failure` / `cancelled` |
+| `EventFlux.Saga` | `sagaflux.dispatcher.completion.operations` | `{operation}` | same as above |
+| `EventFlux.Saga.EfCore` | `sagaflux.store.unresolved_row.observations` | `{observation}` | `kind`: `outbox` / `timeout` |
+
+```csharp
+using var listener = new MeterListener();
+listener.InstrumentPublished = (instrument, l) =>
+{
+    if (instrument.Meter.Name is "EventFlux.Saga" or "EventFlux.Saga.EfCore") l.EnableMeasurementEvents(instrument);
+};
+listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) => Console.WriteLine($"{instrument.Name} +{value}"));
+listener.Start();
+```
+
+- **Dispatch / completion:** one count per send (outbox) or route (timeout) attempted by the batch dispatchers,
+  and one per store completion call they make. `cancelled` means the call threw `OperationCanceledException`
+  while the dispatcher's token was cancelled; any other exception is `failure`. A completion `success` means the
+  store call returned, not that a row was deleted or a saga finished.
+- **Unresolved rows:** one count each time the EF Core outbox or timeout read skips a stored row whose event type
+  cannot be resolved or whose payload is not an event. The row stays stored, so every later read counts it again.
+- **What they are not:** attempt and encounter totals while a listener is attached, not unique messages, a
+  backlog size, delivery guarantees or business outcomes. Inline sends made while a saga handles an event are not
+  counted. No identifier, payload, type name or error text is ever attached as a tag.
+- **Listeners:** keep callbacks fast and non-blocking. An exception thrown by a callback is swallowed and never
+  changes a dispatch, completion, retry or read result. Metrics and tracing are independent of each other.
+
 ## Retention
 
 - **Compensation stack.** It is stored in the instance row, one entry per recorded step. Entries are marked

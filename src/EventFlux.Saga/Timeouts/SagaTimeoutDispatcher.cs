@@ -26,8 +26,27 @@ internal sealed class SagaTimeoutDispatcher(
             var store = scope.ServiceProvider.GetRequiredService<ISagaTimeoutStore>();
             try
             {
-                await scope.ServiceProvider.GetRequiredService<ISagaEventRouter>().RouteAsync(timeout.Event, ct).ConfigureAwait(false);
-                await store.CompleteAsync(timeout.Id, ct).ConfigureAwait(false);
+                try
+                {
+                    await scope.ServiceProvider.GetRequiredService<ISagaEventRouter>().RouteAsync(timeout.Event, ct).ConfigureAwait(false);
+                }
+                catch (Exception routeError)
+                {
+                    SagaOperationalMetrics.TimeoutDispatchFailed(routeError, ct);
+                    throw;
+                }
+                SagaOperationalMetrics.TimeoutDispatchSucceeded();
+
+                try
+                {
+                    await store.CompleteAsync(timeout.Id, ct).ConfigureAwait(false);
+                }
+                catch (Exception completionError)
+                {
+                    SagaOperationalMetrics.TimeoutCompletionFailed(completionError, ct);
+                    throw;
+                }
+                SagaOperationalMetrics.TimeoutCompletionSucceeded();
                 delivered++;
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
