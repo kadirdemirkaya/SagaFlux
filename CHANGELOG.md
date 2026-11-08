@@ -3,6 +3,12 @@
 All packages of the repository share one version. The release number and the NuGet publish are chosen by the
 repository owner.
 
+## 1.1.0 - 2026-11-08
+
+- Every package now targets .NET 8, 9 and 10 (`net8.0`, `net9.0`, `net10.0`); `EventFlux.Saga.Generators` stays `netstandard2.0`.
+- `EventFlux.Saga` depends on `Microsoft.Extensions.Hosting.Abstractions` 8.0.1 / 9.0.20 / 10.0.12 per target framework.
+- No public API or behaviour changes.
+
 ## 1.0.0 - 2026-11-08
 
 First stable release of the EventFlux.Saga package family. Every package targets .NET 8 and EventFlux 2.1.1.

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <!-- Analyzer-only package: no lib assembly, so no symbol package. -->
     <IncludeSymbols>false</IncludeSymbols>
+    <TargetFrameworks></TargetFrameworks>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>

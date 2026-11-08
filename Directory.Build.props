@@ -1,13 +1,13 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>kadirkdr</Authors>
     <Copyright>Copyright (c) 2026 Kadir Demirkaya</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -16,6 +16,22 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/kadirdemirkaya/SagaFlux</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <MicrosoftExtensionsVersion>8.0.1</MicrosoftExtensionsVersion>
+    <EfCoreSqliteVersion>8.0.31</EfCoreSqliteVersion>
+    <AspNetCoreTestHostVersion>8.0.31</AspNetCoreTestHostVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <MicrosoftExtensionsVersion>9.0.20</MicrosoftExtensionsVersion>
+    <EfCoreSqliteVersion>9.0.20</EfCoreSqliteVersion>
+    <AspNetCoreTestHostVersion>9.0.20</AspNetCoreTestHostVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <MicrosoftExtensionsVersion>10.0.12</MicrosoftExtensionsVersion>
+    <EfCoreSqliteVersion>10.0.12</EfCoreSqliteVersion>
+    <AspNetCoreTestHostVersion>10.0.12</AspNetCoreTestHostVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('/src/')) Or $(MSBuildProjectDirectory.Contains('\src\'))">
