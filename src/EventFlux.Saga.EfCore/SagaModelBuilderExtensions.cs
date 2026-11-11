@@ -47,6 +47,27 @@ public static class SagaModelBuilderExtensions
     }
 
     /// <summary>
+    /// Maps <typeparamref name="TState"/> as a saga instance stored in the <paramref name="tableName"/> table. See
+    /// <see cref="ConfigureSagaState{TState}(ModelBuilder, int)"/>.
+    /// </summary>
+    /// <typeparam name="TState">The saga state entity.</typeparam>
+    /// <param name="modelBuilder">The model builder of your <see cref="DbContext"/>.</param>
+    /// <param name="tableName">The table name.</param>
+    /// <param name="stateNameMaxLength">Maximum length of the persisted state name.</param>
+    /// <returns>The entity builder, for further configuration (business columns).</returns>
+    public static Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<TState> ConfigureSagaState<TState>(
+        this ModelBuilder modelBuilder, string tableName, int stateNameMaxLength = 128)
+        where TState : class, ISagaState
+    {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
+
+        var entity = modelBuilder.ConfigureSagaState<TState>(stateNameMaxLength);
+        entity.ToTable(tableName);
+        return entity;
+    }
+
+    /// <summary>
     /// Maps <see cref="SagaTimeoutRecord"/> for <see cref="EfCoreSagaTimeoutStore"/>: one pending timeout per
     /// instance and key, indexed by due time.
     /// </summary>

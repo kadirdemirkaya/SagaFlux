@@ -3,6 +3,18 @@
 All packages of the repository share one version. The release number and the NuGet publish are chosen by the
 repository owner.
 
+## 1.2.0 - 2026-11-11
+
+Additive only: no existing public API or behaviour changes.
+
+### EventFlux.Saga
+- `.AskAsync(request, onResponse)` transition step: like `.Ask`, with an awaited asynchronous response callback.
+- `WhenAll<T1, T2, T3, T4>()` and `WhenAll<T1, T2, T3, T4, T5>()` joins.
+- `AddSaga<TSaga, TState>(saga)` registers an already created saga, so the saga type needs no parameterless constructor.
+
+### EventFlux.Saga.EfCore
+- `ConfigureSagaState<TState>(tableName, stateNameMaxLength)` maps the saga state into the named table.
+
 ## 1.1.0 - 2026-11-08
 
 - Every package now targets .NET 8, 9 and 10 (`net8.0`, `net9.0`, `net10.0`); `EventFlux.Saga.Generators` stays `netstandard2.0`.

@@ -47,7 +47,38 @@ public sealed class SagaFluxBuilder
         if (Services.Any(d => d.ServiceType == typeof(TSaga)))
             return this;
 
-        var saga = new TSaga();
+        return Register<TSaga, TState>(new TSaga());
+    }
+
+    /// <summary>
+    /// Registers an already created saga definition, for a saga type without a public parameterless constructor.
+    /// </summary>
+    /// <remarks>
+    /// The instance is shared. As with <see cref="AddSaga{TSaga, TState}()"/>, a second registration of the same
+    /// saga type is ignored, and the state type uses <see cref="InMemorySagaRepository{TState}"/> unless another
+    /// <see cref="ISagaRepository{TState}"/> is registered.
+    /// </remarks>
+    /// <typeparam name="TSaga">The saga type.</typeparam>
+    /// <typeparam name="TState">The saga state type.</typeparam>
+    /// <param name="saga">The saga definition.</param>
+    /// <returns>This builder.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is <c>null</c>.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the saga cannot correlate one of its events.</exception>
+    public SagaFluxBuilder AddSaga<TSaga, TState>(TSaga saga)
+        where TSaga : Saga<TState>
+        where TState : class, ISagaState, new()
+    {
+        ArgumentNullException.ThrowIfNull(saga);
+        if (Services.Any(d => d.ServiceType == typeof(TSaga)))
+            return this;
+
+        return Register<TSaga, TState>(saga);
+    }
+
+    private SagaFluxBuilder Register<TSaga, TState>(TSaga saga)
+        where TSaga : Saga<TState>
+        where TState : class, ISagaState, new()
+    {
         saga.Validate();
 
         Services.AddSingleton(saga);
@@ -76,7 +107,8 @@ public sealed class SagaFluxBuilder
     public SagaFluxBuilder AddSagas(params Assembly[] assemblies)
     {
         ArgumentNullException.ThrowIfNull(assemblies);
-        var addSaga = typeof(SagaFluxBuilder).GetMethod(nameof(AddSaga))!;
+        var addSaga = typeof(SagaFluxBuilder).GetMethods()
+            .Single(m => m.Name == nameof(AddSaga) && m.GetParameters().Length == 0);
 
         foreach (var type in assemblies.Distinct().SelectMany(SafeTypes))
         {

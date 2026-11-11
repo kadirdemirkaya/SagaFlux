@@ -53,7 +53,7 @@ thin RabbitFlow / RedisFlow adapters, an inspector, a state generator and a test
 
 ## Packages
 
-All packages target .NET 8, 9 and 10 with EventFlux 2.1.1 and share version **1.1.0**, with Source Link and symbols.
+All packages target .NET 8, 9 and 10 with EventFlux 2.1.1 and share version **1.2.0**, with Source Link and symbols.
 
 | Package | Purpose |
 |---|---|

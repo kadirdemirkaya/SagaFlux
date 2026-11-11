@@ -28,7 +28,7 @@ public static class SagaFluxServiceCollectionExtensions
     /// </remarks>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Optional runtime options.</param>
-    /// <param name="assemblies">Assemblies to scan for sagas; more can be added with <see cref="SagaFluxBuilder.AddSaga{TSaga, TState}"/>.</param>
+    /// <param name="assemblies">Assemblies to scan for sagas; more can be added with <see cref="SagaFluxBuilder.AddSaga{TSaga, TState}()"/>.</param>
     /// <returns>A builder to configure sagas, persistence and transport.</returns>
     public static SagaFluxBuilder AddSagaFlux(this IServiceCollection services, Action<SagaFluxOptions>? configure, params Assembly[] assemblies)
     {

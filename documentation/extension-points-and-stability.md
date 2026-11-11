@@ -9,6 +9,7 @@ Replacing defaults, tuning options, and the formats that stay stable.
 | Builder method | Replaces / registers | Default lifetime |
 |---|---|---|
 | `AddSaga<TSaga, TState>()` / `AddSagas(assemblies)` | One saga / every saga with a public parameterless constructor (`AddSagaFlux(assemblies)` calls `AddSagas`) | — |
+| `AddSaga<TSaga, TState>(saga)` | An already created saga, for constructors with parameters | — |
 | `UseRepository<TState, TRepository>(lifetime)` | `ISagaRepository<TState>` (default: in-memory) | `Scoped` |
 | `UseTransport<TTransport>(lifetime)` | `ISagaTransport` (default: in-process) | `Transient` |
 | `UseTimeoutStore<TStore>(lifetime)` | `ISagaTimeoutStore` (default: in-memory) | `Scoped` |

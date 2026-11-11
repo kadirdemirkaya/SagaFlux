@@ -148,6 +148,33 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
         where TFirst : class where TSecond : class where TThird : class
         => Join(typeof(TFirst), typeof(TSecond), typeof(TThird));
 
+    /// <summary>
+    /// Starts a transition that runs once all four events have arrived for the instance, in any order. See
+    /// <see cref="WhenAll{TFirst, TSecond}"/>.
+    /// </summary>
+    /// <typeparam name="TFirst">The first awaited event.</typeparam>
+    /// <typeparam name="TSecond">The second awaited event.</typeparam>
+    /// <typeparam name="TThird">The third awaited event.</typeparam>
+    /// <typeparam name="TFourth">The fourth awaited event.</typeparam>
+    /// <returns>A builder describing what happens when all events have arrived.</returns>
+    protected SagaTransitionBuilder<object> WhenAll<TFirst, TSecond, TThird, TFourth>()
+        where TFirst : class where TSecond : class where TThird : class where TFourth : class
+        => Join(typeof(TFirst), typeof(TSecond), typeof(TThird), typeof(TFourth));
+
+    /// <summary>
+    /// Starts a transition that runs once all five events have arrived for the instance, in any order. See
+    /// <see cref="WhenAll{TFirst, TSecond}"/>.
+    /// </summary>
+    /// <typeparam name="TFirst">The first awaited event.</typeparam>
+    /// <typeparam name="TSecond">The second awaited event.</typeparam>
+    /// <typeparam name="TThird">The third awaited event.</typeparam>
+    /// <typeparam name="TFourth">The fourth awaited event.</typeparam>
+    /// <typeparam name="TFifth">The fifth awaited event.</typeparam>
+    /// <returns>A builder describing what happens when all events have arrived.</returns>
+    protected SagaTransitionBuilder<object> WhenAll<TFirst, TSecond, TThird, TFourth, TFifth>()
+        where TFirst : class where TSecond : class where TThird : class where TFourth : class where TFifth : class
+        => Join(typeof(TFirst), typeof(TSecond), typeof(TThird), typeof(TFourth), typeof(TFifth));
+
     private SagaTransitionBuilder<object> Join(params Type[] types)
     {
         if (!typeof(IJoinableSagaState).IsAssignableFrom(typeof(TState)))
@@ -511,6 +538,25 @@ public abstract class Saga<TState> where TState : class, ISagaState, new()
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(onResponse);
             _steps.Add(async (ctx, _) => onResponse(ctx, await ctx.AskAsync(request(ctx)).ConfigureAwait(false)));
+            return this;
+        }
+
+        /// <summary>
+        /// Sends a request and awaits <paramref name="onResponse"/> with its response, for a callback that does
+        /// asynchronous work. Otherwise the same as <see cref="Ask{TResponse}"/>.
+        /// </summary>
+        /// <typeparam name="TResponse">The response type.</typeparam>
+        /// <param name="request">Creates the request from the context.</param>
+        /// <param name="onResponse">Receives the response; the step completes when the returned task does.</param>
+        /// <returns>This builder.</returns>
+        public SagaTransitionBuilder<TEvent> AskAsync<TResponse>(
+            Func<SagaContext<TState, TEvent>, IEventRequest<TResponse>> request,
+            Func<SagaContext<TState, TEvent>, TResponse, Task> onResponse)
+            where TResponse : IEventResponse
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(onResponse);
+            _steps.Add(async (ctx, _) => await onResponse(ctx, await ctx.AskAsync(request(ctx)).ConfigureAwait(false)).ConfigureAwait(false));
             return this;
         }
 

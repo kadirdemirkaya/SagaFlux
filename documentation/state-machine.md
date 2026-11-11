@@ -33,7 +33,7 @@ During(SagaStates.Initial,
     WhenAll<OrderPaid, OrderPacked>().Publish(ctx => new ShipParcel(ctx.CorrelationId)).TransitionTo(ReadyToDispatch));
 ```
 
-The state implements `IJoinableSagaState` (adds `List<string> JoinedEvents`). Two or three event types in any
+The state implements `IJoinableSagaState` (adds `List<string> JoinedEvents`). Two to five event types in any
 order; the first creates the instance. The steps run once all arrived (`ctx.Event` is the last). A repeated
 event counts once; the join starts over after it ran.
 
@@ -50,6 +50,7 @@ During(SagaStates.Initial,
 ```
 
 - Sent through `IEventDispatcher` to its `IEventHandler<,>`; `ctx.AskAsync(request)` does the same in `ThenAsync`.
+- `.AskAsync(request, async (ctx, response) => ...)` awaits the callback before the next step runs.
 - It runs while the instance is locked, so the handler must not wait for the same instance. A throwing handler
   or a missing response fails the step. Across services, publish a command, handle the reply and `Schedule` a timeout.
 - In tests, `Answer<TRequest, TResponse>(...)` replaces the handler; an unanswered request throws

@@ -28,6 +28,7 @@ services.AddSagaFlux(typeof(Program).Assembly)
 ```
 
 - `CorrelationId` is the key, `Version` the optimistic concurrency token; the compensation stack is a JSON column.
+- `ConfigureSagaState<OrderState>("OrderSagas")` takes the table name directly.
 - The repository is scoped: dispatch inside a DI scope (e.g. an HTTP request) or enable EventFlux's `CreateScopePerEvent`.
 - `UseEfCoreTimeouts` keeps pending timeouts across restarts. Rows whose event type cannot be resolved are
   logged and kept without blocking valid ones; `TimeoutBatchSize` limits valid timeouts per poll.
